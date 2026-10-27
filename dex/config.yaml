@@ -1,0 +1,77 @@
+# Local test identity provider only. These credentials are intentionally non-production.
+issuer: http://localhost:5556
+
+storage:
+  type: sqlite3
+  config:
+    file: /var/dex/dex.db
+
+web:
+  http: 0.0.0.0:5556
+
+oauth2:
+  skipApprovalScreen: true
+
+enablePasswordDB: true
+
+staticClients:
+  - id: oauth2-client-lab
+    secret: e9210f799f88f364acc21d88c0533e538a4117f9e2ed0a26ecce42bb976ad614
+    name: OAuth2 Client Lab
+    redirectURIs:
+      - http://localhost:8080/login/oauth2/code/dex-local
+      - http://localhost:8080/login/oauth2/code/dex-existing-only
+      - http://localhost:8081/login/oauth2/code/dex-domain-mapping
+      - http://localhost:8081/login/oauth2/code/dex-custom-tenant
+      - http://localhost:8081/login/oauth2/code/dex-inactive-user
+
+staticPasswords:
+  - email: dex.user@example.com
+    hash: $2a$10$Qu8gfTVb52C0qFLaAV0PmeAErFweUtxlthOv9oLQEAzoPzmS6lpiu # dex-demo
+    username: dex-user
+    userID: 7212706c-3b5c-4dd7-b8a7-52a98958ad5d
+    name: Dex Default Tenant User
+    preferredUsername: default-user
+    emailVerified: true
+  - email: alice@acme.example.com
+    hash: $2a$10$Qu8gfTVb52C0qFLaAV0PmeAErFweUtxlthOv9oLQEAzoPzmS6lpiu # dex-demo
+    username: alice-acme
+    userID: 7212706c-3b5c-4dd7-b8a7-52a98958ad5e
+    name: Alice Acme Operations
+    preferredUsername: acme-ops
+    emailVerified: true
+  - email: bob@acme.example.com
+    hash: $2a$10$Qu8gfTVb52C0qFLaAV0PmeAErFweUtxlthOv9oLQEAzoPzmS6lpiu # dex-demo
+    username: bob-acme
+    userID: 7212706c-3b5c-4dd7-b8a7-52a98958ad5f
+    name: Bob Acme Sales
+    preferredUsername: acme-sales
+    emailVerified: true
+  - email: carol@beta.example.net
+    hash: $2a$10$Qu8gfTVb52C0qFLaAV0PmeAErFweUtxlthOv9oLQEAzoPzmS6lpiu # dex-demo
+    username: carol-beta
+    userID: 7212706c-3b5c-4dd7-b8a7-52a98958ad60
+    name: Carol Beta Support
+    preferredUsername: beta-support
+    emailVerified: true
+  - email: dana@custom.example.org
+    hash: $2a$10$Qu8gfTVb52C0qFLaAV0PmeAErFweUtxlthOv9oLQEAzoPzmS6lpiu # dex-demo
+    username: dana-custom
+    userID: 7212706c-3b5c-4dd7-b8a7-52a98958ad61
+    name: Dana Custom Tenant
+    preferredUsername: custom-org
+    emailVerified: true
+  - email: existing@local.example
+    hash: $2a$10$Qu8gfTVb52C0qFLaAV0PmeAErFweUtxlthOv9oLQEAzoPzmS6lpiu # dex-demo
+    username: existing-user
+    userID: 7212706c-3b5c-4dd7-b8a7-52a98958ad62
+    name: Existing Account Test
+    preferredUsername: existing-user
+    emailVerified: true
+  - email: inactive@local.example
+    hash: $2a$10$Qu8gfTVb52C0qFLaAV0PmeAErFweUtxlthOv9oLQEAzoPzmS6lpiu # dex-demo
+    username: inactive-user
+    userID: 7212706c-3b5c-4dd7-b8a7-52a98958ad63
+    name: Inactive Credential Test
+    preferredUsername: inactive-user
+    emailVerified: true

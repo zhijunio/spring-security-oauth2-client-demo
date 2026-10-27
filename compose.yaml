@@ -1,0 +1,30 @@
+services:
+  dex:
+    image: ghcr.io/dexidp/dex:v2.46.0
+    command: ["dex", "serve", "/etc/dex/config.yaml"]
+    ports:
+      - "127.0.0.1:5556:5556"
+    volumes:
+      - ./dex/config.yaml:/etc/dex/config.yaml:ro
+      - dex-data:/var/dex
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-oauth2_client_demo}
+      POSTGRES_USER: ${DB_USERNAME:-oauth2_demo}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-oauth2_demo}
+    ports:
+      - "${DB_PORT:-5435}:5432"
+    volumes:
+      - oauth2-client-postgres:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-oauth2_demo} -d ${DB_NAME:-oauth2_client_demo}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  dex-data:
+  oauth2-client-postgres:

@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f3f7ff">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <meta name="description" content="观察 Spring Security OAuth2 Client 如何把外部 OIDC 身份映射为本地账户和平台 JWT。">
+    <title>OAuth2 Client Lab</title>
+    <link rel="stylesheet" th:href="@{/assets/app.css}">
+    <script th:src="@{/assets/app.js}" defer></script>
+</head>
+<body>
+<main class="page-shell">
+    <header class="topbar">
+        <a class="brand" href="/" aria-label="OAuth2 Client Lab 首页">
+            <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+            <span>OAuth2 Client <b>Lab</b></span>
+        </a>
+        <div class="topbar-actions" th:if="${authenticated}"><a th:if="${adminAuthenticated}" href="/admin/oauth2-clients">客户端管理</a><span class="topbar-note"><span class="live-dot"></span> 本地交互演示</span></div>
+    </header>
+
+    <section class="hero" aria-labelledby="page-title" th:if="${authenticated}">
+        <div class="hero-copy">
+            <p class="eyebrow">SPRING SECURITY · AUTHENTICATION</p>
+            <h1 id="page-title">管理员密码登录，<br><span>也可使用外部身份。</span></h1>
+            <p class="hero-description">本地管理员可以管理 OAuth2 Client、模板和 mapper；首页也会展示当前域名已启用的 OAuth2 Client。</p>
+        </div>
+        <div class="protocol-stamp" aria-label="OAuth 2.0 与 OpenID Connect 授权码流程">
+            <span>授权码流程</span>
+            <strong>OAuth 2.0</strong>
+            <span>Authorization Code</span>
+        </div>
+    </section>
+
+    <section class="workspace" aria-label="认证结果">
+        <section class="journey-panel" aria-labelledby="journey-title" th:if="${authenticated}">
+            <div class="panel-heading">
+                <div>
+                    <p class="section-kicker">身份交接</p>
+                    <h2 id="journey-title">一次回调，三段职责</h2>
+                </div>
+                <span class="step-count">01 <i>/</i> 03</span>
+            </div>
+
+            <ol class="journey-list">
+                <li class="journey-step" th:classappend="${authenticated} ? 'is-complete' : 'is-current'">
+                    <span class="step-rail"><span class="step-index">01</span><span class="rail-line"></span></span>
+                    <div class="step-content">
+                        <div class="step-title-row"><h3>外部协议认证</h3><span class="step-tag">IDENTITY PROVIDER</span></div>
+                        <p>Spring Security 校验 state 和回调；配置 OIDC 时还会验证 ID Token。应用不接触用户密码。</p>
+                        <div class="data-chip"><span>本地用户</span><code>users.email + tenantId</code></div>
+                    </div>
+                </li>
+                <li class="journey-step" th:classappend="${authenticated} ? 'is-complete' : ''">
+                    <span class="step-rail"><span class="step-index">02</span><span class="rail-line"></span></span>
+                    <div class="step-content">
+                        <div class="step-title-row"><h3>映射本地账户</h3><span class="step-tag">LOCAL ACCOUNT</span></div>
+                        <p>从 provider 属性映射已验证邮箱和姓名；按邮箱查找用户，并校验用户与 OAuth2 Client 属于同一租户。</p>
+                        <div class="data-chip"><span>account</span><code th:text="${oauthAuthenticated ? loginSession.securityUser.id : '登录后生成'}">登录后生成</code></div>
+                    </div>
+                </li>
+                <li class="journey-step" th:classappend="${authenticated} ? 'is-complete' : ''">
+                    <span class="step-rail"><span class="step-index">03</span></span>
+                    <div class="step-content">
+                        <div class="step-title-row"><h3>签发平台令牌</h3><span class="step-tag">PLATFORM JWT</span></div>
+                        <p>平台为本地账户签发自己的短期 JWT，资源 API 只验证平台令牌。</p>
+                        <div class="data-chip"><span>aud</span><code>oauth2-client-platform-api</code></div>
+                    </div>
+                </li>
+            </ol>
+
+            <div class="boundary-note">
+                <span class="boundary-icon" aria-hidden="true">↳</span>
+                <p><strong>两种令牌，两个边界。</strong> Google 的令牌代表外部身份；平台 JWT 代表本地账户对平台 API 的访问。</p>
+            </div>
+        </section>
+
+        <section class="action-panel" aria-labelledby="action-title">
+            <div class="action-topline" th:if="${authenticated}">
+                <span class="provider-label"><span class="google-mark" aria-hidden="true">↗</span> OAUTH2 PROVIDERS</span>
+                <span class="secure-label"><span aria-hidden="true">●</span> STATE · SERVER FLOW</span>
+            </div>
+
+            <div class="account-content" th:if="${adminAuthenticated}">
+                <div class="account-heading">
+                    <span class="account-avatar" aria-hidden="true">A</span>
+                    <div><p class="section-kicker">管理员会话已建立</p><h2 id="action-title">OAuth2 管理台</h2></div>
+                    <span class="verified-mark" aria-label="登录成功">✓</span>
+                </div>
+                <p class="login-description">可以维护 OAuth2 Client、provider 模板、mapper 和登录域名。</p>
+                <a class="api-button admin-console-link" href="/admin/oauth2-clients"><span>打开客户端管理</span><span class="button-arrow" aria-hidden="true">→</span></a>
+                <form class="logout-form" th:action="@{/admin/logout}" method="post">
+                    <button type="submit">退出管理员会话</button>
+                </form>
+            </div>
+
+            <div class="account-content" th:if="${oauthAuthenticated}">
+                <div class="account-heading">
+                    <span class="account-avatar" aria-hidden="true" th:text="${#strings.substring(loginSession.securityUser.displayName, 0, 1)}">G</span>
+                    <div><p class="section-kicker">本地账户已建立</p><h2 id="action-title" th:text="${loginSession.securityUser.displayName}">Google 用户</h2></div>
+                    <span class="verified-mark" aria-label="登录成功">✓</span>
+                </div>
+
+                <dl class="account-details">
+                    <div><dt>本地账户 ID</dt><dd th:text="${loginSession.securityUser.id}">acct_...</dd></div>
+                    <div><dt>邮箱</dt><dd th:text="${loginSession.securityUser.email}">user@example.com</dd></div>
+                    <div><dt>租户</dt><dd th:text="${loginSession.securityUser.tenantName}">租户</dd></div>
+                    <div><dt>平台令牌</dt><dd><span class="token-status"><i></i> 已签发 · 5 分钟有效</span></dd></div>
+                </dl>
+
+                <button class="api-button" id="call-platform-api" type="button">
+                    <span>携带平台 JWT 调用 API</span><span class="button-arrow" aria-hidden="true">→</span>
+                </button>
+                <p class="api-hint">令牌仅在这次操作中暂存于页面内存，不写入 localStorage。</p>
+
+                <section class="api-result" id="api-result" aria-live="polite" hidden>
+                    <div class="result-heading"><span class="result-pulse"></span><strong id="result-title">平台 API 响应</strong></div>
+                    <pre id="result-body"></pre>
+                </section>
+
+                <form class="logout-form" th:action="@{/logout}" method="post">
+                    <button type="submit">退出并清除本站会话</button>
+                </form>
+            </div>
+
+            <footer class="panel-footer" th:if="${authenticated}"><span>SPRING SECURITY 7</span><span class="footer-line"></span><span>OAUTH2 CLIENT</span></footer>
+        </section>
+    </section>
+
+    <footer class="page-footer" th:if="${authenticated}"><span>本地教学示例</span><span>外部认证 → 本地身份 → 平台授权</span></footer>
+</main>
+</body>
+</html>

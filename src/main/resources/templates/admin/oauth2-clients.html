@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="_csrf" th:content="${_csrf.token}"><meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <title>OAuth2 Client 管理 · OAuth2 Client Lab</title>
+    <link rel="stylesheet" th:href="@{/assets/app.css}"><script th:src="@{/assets/admin.js}" defer></script>
+</head>
+<body><main class="page-shell admin-shell">
+    <header class="topbar"><a class="brand" href="/"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span><span>OAuth2 Client <b>Lab</b></span></a><form action="/admin/logout" method="post"><input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"><button class="text-button" type="submit">退出管理</button></form></header>
+    <section class="admin-heading"><div><p class="eyebrow">CLIENT REGISTRY · POSTGRESQL</p><h1>OAuth2 Client 管理</h1><p>模板提供默认配置；保存后的 Client 持有独立配置，可分别启用或停用。</p></div><a class="secondary-link" href="/">查看登录页 →</a></section>
+    <section class="admin-grid">
+        <section class="admin-card"><div class="admin-card-heading"><div><p class="section-kicker">CLIENT REGISTRY</p><h2>已配置客户端</h2></div><button class="refresh-button" id="refresh-clients" type="button">刷新</button></div><div id="client-list" class="client-list" aria-live="polite"><p class="muted">正在加载客户端…</p></div></section>
+        <section class="admin-card"><div class="admin-card-heading"><div><p class="section-kicker">TEMPLATE → CLIENT</p><h2 id="form-title">添加登录方式</h2></div></div>
+            <form id="client-form" class="admin-form">
+                <input type="hidden" id="client-id">
+                <input type="hidden" id="registration-id">
+                <div class="callback-preview"><span>此 Client 的回调 URI</span><code id="callback-uri"></code><button type="button" id="copy-callback">复制</button></div>
+                <label>显示名称<input id="client-name" maxlength="120" placeholder="例如：公司 Google" required></label>
+                <label>Client 所属租户<select id="client-tenant-id" required></select></label>
+                <p class="muted">选择普通租户时，新用户固定归属该租户。选择系统租户时，BASIC/GITHUB/APPLE 按租户命名策略映射；CUSTOM mapper 可返回 tenantId 或 tenantName。</p>
+                <button class="text-button" id="create-tenant" type="button">新建租户</button>
+                <label>配置模板<select id="client-template" required></select></label>
+                <label>OAuth Client ID<input id="oauth-client-id" autocomplete="off" required></label>
+                <label>OAuth Client Secret<input id="oauth-client-secret" type="password" autocomplete="new-password" required></label>
+                <label>用户属性 mapper<select id="client-mapper" required></select></label>
+                <fieldset class="mapper-settings"><legend>Basic 属性映射</legend>
+                    <label>邮箱属性键<input id="basic-email-attribute-key" placeholder="email"></label>
+                    <label>名属性键<input id="basic-first-name-attribute-key" placeholder="given_name"></label>
+                    <label>姓属性键<input id="basic-last-name-attribute-key" placeholder="family_name"></label>
+                    <label>租户命名策略<select id="basic-tenant-name-strategy"><option value="">不指定</option><option value="EMAIL">完整邮箱</option><option value="DOMAIN">邮箱域名</option><option value="CUSTOM">自定义模板</option></select></label>
+                    <label>租户名称模板<input id="basic-tenant-name-pattern" placeholder="%{organization}"></label>
+                    <label>客户名称模板<input id="basic-customer-name-pattern" placeholder="%{company}"></label>
+                </fieldset>
+                <fieldset class="mapper-settings"><legend>Custom 远端映射</legend>
+                    <label>映射服务 URL<input id="custom-url" type="url" placeholder="https://mapper.example.com/oauth2/user"></label>
+                    <label>映射服务用户名<input id="custom-username" autocomplete="username"></label>
+                    <label>映射服务密码<input id="custom-password" type="password" autocomplete="new-password" placeholder="留空保留已保存密码"></label>
+                    <label class="checkbox-label"><input id="custom-send-token" type="checkbox">向映射服务传递提供方 Access Token</label>
+                </fieldset>
+                <label>Scopes（逗号分隔）<input id="client-scopes" placeholder="留空使用模板默认值"></label>
+                <label>登录按钮图标<input id="client-button-icon" maxlength="255" placeholder="继承模板默认值"></label>
+                <label>登录按钮文案<input id="client-button-label" maxlength="255" placeholder="继承模板默认值"></label>
+                <label class="checkbox-label"><input id="client-allow-user-creation" type="checkbox" checked>允许自动创建用户</label>
+                <label class="checkbox-label"><input id="client-activate-user" type="checkbox" checked>自动激活新用户</label>
+                <label class="checkbox-label"><input id="client-enabled" type="checkbox">创建后立即启用</label>
+                <div class="form-actions"><button class="api-button" type="submit"><span id="submit-label">保存 Client</span><span aria-hidden="true">→</span></button><button class="text-button" id="cancel-edit" type="button" hidden>取消编辑</button></div>
+                <p id="form-message" class="form-message" role="status"></p>
+                <p class="admin-help">OAuth2 Client Secret 与 Custom 映射密码以明文存储，请仅用于本地学习环境。数据库客户端回调地址为 <code>http://localhost:8080/login/oauth2/code/{registrationId}</code>。</p>
+            </form>
+        </section>
+    </section>
+    <section class="admin-card domain-card">
+        <div class="admin-card-heading"><div><p class="section-kicker">DOMAIN → OAUTH2 CLIENTS</p><h2>域名登录方式</h2></div><button class="refresh-button" id="refresh-domains" type="button">刷新</button></div>
+        <p class="muted">为访问域名指定可用的 OAuth2 Client。启用域名配置后，登录页只显示该域名关联且已启用的 Client。</p>
+        <div id="domain-list" class="client-list" aria-live="polite"><p class="muted">正在加载域名…</p></div>
+        <form id="domain-form" class="admin-form domain-form">
+            <input type="hidden" id="domain-id">
+            <label>域名<input id="domain-name" maxlength="255" placeholder="例如：login.example.com 或 localhost:8080" required></label>
+            <label>域名所属租户<select id="domain-tenant-id" required></select></label>
+            <label class="checkbox-label"><input id="domain-oauth2-enabled" type="checkbox" checked>启用此域名的 OAuth2 登录</label>
+            <fieldset class="mapper-settings"><legend>可用 OAuth2 Client</legend><div id="domain-client-options" class="domain-client-options"></div></fieldset>
+            <div class="form-actions"><button class="api-button" type="submit"><span id="domain-submit-label">保存域名</span><span aria-hidden="true">→</span></button><button class="text-button" id="reset-domain" type="button">新建域名</button></div>
+            <p id="domain-message" class="form-message" role="status"></p>
+        </form>
+    </section>
+</main></body></html>

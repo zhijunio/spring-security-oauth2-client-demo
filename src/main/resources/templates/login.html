@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f3f7ff">
+    <title>登录 · OAuth2 Client Lab</title>
+    <link rel="stylesheet" th:href="@{/assets/app.css}">
+    <script th:src="@{/assets/app.js}" defer></script>
+</head>
+<body>
+<main class="page-shell login-shell">
+    <a class="brand" href="/login" aria-label="OAuth2 Client Lab">
+        <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span>OAuth2 Client <b>Lab</b></span>
+    </a>
+
+    <section class="login-card" aria-labelledby="login-title">
+        <h1 id="login-title">登录</h1>
+        <div class="notice notice-error" role="alert" th:if="${loginError}">用户名或密码错误，或 OAuth2 登录未完成。</div>
+        <div class="notice notice-success" role="status" th:if="${signedOut}">已退出登录。</div>
+
+        <form th:action="@{/admin/login}" method="post" class="admin-form">
+            <label>用户名<input name="username" autocomplete="username" required autofocus></label>
+            <label>密码<input name="password" type="password" autocomplete="current-password" required></label>
+            <button class="api-button" type="submit">登录</button>
+        </form>
+
+        <div class="login-divider" th:if="${!#lists.isEmpty(providers)}"><span>或</span></div>
+        <a class="google-button" th:each="provider : ${providers}"
+           th:href="@{/oauth2/authorization/{id}(id=${provider.id})}">
+            <span class="google-button-mark" aria-hidden="true"
+                  th:attr="data-login-button-icon=${provider.loginButtonIcon}">↗</span>
+            <span th:text="|继续使用 ${provider.loginButtonLabel}|">继续使用身份提供方</span>
+            <span class="button-arrow" aria-hidden="true">→</span>
+        </a>
+    </section>
+</main>
+</body>
+</html>
