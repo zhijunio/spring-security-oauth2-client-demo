@@ -22,10 +22,9 @@ A Spring Boot sample for learning OAuth2 / OIDC social login. OAuth2 Clients and
 
 ```bash
 cp .env.sample .env
-cp .secrets.properties.sample .secrets.properties
 ```
 
-Before initializing the database, generate a BCrypt password hash with a Spring Security-compatible `PasswordEncoder` and set it as `OAUTH2_ADMIN_PASSWORD_HASH` in `.secrets.properties`. Use the encoded format `{bcrypt}$2a$...`; do not put the plaintext password in this file. Dex is a local test identity provider; its client and test accounts are defined in `dex/config.yaml` and require no environment variables. The administrator entry is shown on the home page by default. On the first Flyway migration, the admin account is created with the pre-encoded password hash. The local Dex test password is `dex-demo`; accounts and client configuration are in `dex/config.yaml` and are for learning only. Flyway creates the administrator only when the hash is non-empty. The Dex test Client Secret is a random plaintext value shared by the Dex configuration and Flyway seed; it is intended only for local testing. OAuth2 Client Secrets and Custom mapper passwords are also stored in plaintext in this sample. Do not commit `.env` or `.secrets.properties`.
+Before initializing the database, generate a BCrypt password hash with a Spring Security-compatible `PasswordEncoder` and set it as `OAUTH2_ADMIN_PASSWORD_HASH` in `.env`. Use the encoded format `{bcrypt}$2a$...`; do not put the plaintext password in this file. Dex is a local test identity provider; its client and test accounts are defined in `dex/config.yaml` and require no environment variables. The administrator entry is shown on the home page by default. On the first Flyway migration, the admin account is created with the pre-encoded password hash. The local Dex test password is `dex-demo`; accounts and client configuration are in `dex/config.yaml` and are for learning only. Flyway creates the administrator only when the hash is non-empty. The Dex test Client Secret is a random plaintext value shared by the Dex configuration and Flyway seed; it is intended only for local testing. OAuth2 Client Secrets and Custom mapper passwords are also stored in plaintext in this sample. Do not commit `.env`.
 
 Start PostgreSQL and run the application:
 

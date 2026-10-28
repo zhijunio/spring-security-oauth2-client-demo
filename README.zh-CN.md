@@ -22,10 +22,9 @@
 
 ```bash
 cp .env.sample .env
-cp .secrets.properties.sample .secrets.properties
 ```
 
-首次初始化数据库前，使用兼容 Spring Security 的 `PasswordEncoder` 生成管理员 BCrypt 密码哈希，并将其设置为 `.secrets.properties` 中的 `OAUTH2_ADMIN_PASSWORD_HASH`。格式为 `{bcrypt}$2a$...`，不要在该文件中填写明文密码。Dex 是本地测试用身份提供方，client 和测试账号固定在 `dex/config.yaml` 中，无需环境变量。管理员入口默认显示在首页；Flyway 首次迁移会创建管理员账号并保存预先编码的密码哈希。本地 Dex 测试密码为 `dex-demo`，测试账号和 client 配置位于 `dex/config.yaml`；它们仅供本地学习，不要用于生产环境。Flyway 仅在管理员哈希非空时初始化管理员账号；Dex 测试 Client Secret 是随机生成的本地明文值，分别写入 Dex 配置和 Flyway seed，不依赖环境变量；该配置仅用于本地测试。OAuth2 Client Secret 和 Custom 映射密码在本示例中明文存储，仅适用于本地学习环境。`.env` 与 `.secrets.properties` 均不应提交到版本库。
+首次初始化数据库前，使用兼容 Spring Security 的 `PasswordEncoder` 生成管理员 BCrypt 密码哈希，并将其设置为 `.env` 中的 `OAUTH2_ADMIN_PASSWORD_HASH`。格式为 `{bcrypt}$2a$...`，不要在该文件中填写明文密码。Dex 是本地测试用身份提供方，client 和测试账号固定在 `dex/config.yaml` 中，无需环境变量。管理员入口默认显示在首页；Flyway 首次迁移会创建管理员账号并保存预先编码的密码哈希。本地 Dex 测试密码为 `dex-demo`，测试账号和 client 配置位于 `dex/config.yaml`；它们仅供本地学习，不要用于生产环境。Flyway 仅在管理员哈希非空时初始化管理员账号；Dex 测试 Client Secret 是随机生成的本地明文值，分别写入 Dex 配置和 Flyway seed，不依赖环境变量；该配置仅用于本地测试。OAuth2 Client Secret 和 Custom 映射密码在本示例中明文存储，仅适用于本地学习环境。`.env` 不应提交到版本库。
 
 启动 PostgreSQL 并运行应用：
 
